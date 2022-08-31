@@ -1,0 +1,1 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/ex3aerjh4pyqa3qd?svg=true)](https://ci.appveyor.com/project/Negrustin/pageopject)
