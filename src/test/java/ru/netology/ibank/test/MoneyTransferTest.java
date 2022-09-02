@@ -1,10 +1,17 @@
 package ru.netology.ibank.test;
+import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.Selenide;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.netology.ibank.data.DataHelper;
 import ru.netology.ibank.page.DashboardPage;
 import ru.netology.ibank.page.LoginPage;
 import ru.netology.ibank.page.TransferPage;
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.time.Duration;
+
 import static com.codeborne.selenide.Selenide.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,7 +34,6 @@ class MoneyTransferTest {
 
     @Test
     void shouldTransferMoneyFromSecondCardToFirstCard() {
-        //Configuration.holdBrowserOpen = true;
         DashboardPage dashboardPage = new DashboardPage();
         TransferPage transferPage = new TransferPage();
         int firstCardStart_balance = dashboardPage.getCardBalance(dashboardPage.getFirstMyCardId());
@@ -57,6 +63,8 @@ class MoneyTransferTest {
         assertEquals(expected2, actual2);
     }
 
+
+
     @Test
     void shouldTransferMoneyFromFirstCardToSecondCard() {
         DashboardPage dashboardPage = new DashboardPage();
@@ -66,7 +74,7 @@ class MoneyTransferTest {
 
         dashboardPage.topUpCard_002();
 
-        transferPage.topUpYourCardByAmount(DataHelper.getAccountNumber_001(), amount);
+        transferPage.topUpYourCardByAmount(DataHelper.getAccountNumber_001(),amount);
 
         int expected = secondCardStart_balance + amount;
         int expected2 = firstCardStart_balance - amount;
@@ -122,6 +130,8 @@ class MoneyTransferTest {
         dashboardPage.getErrorMassage("Номер счёта введен неверно");
 
     }
+
+
 
 
 }
