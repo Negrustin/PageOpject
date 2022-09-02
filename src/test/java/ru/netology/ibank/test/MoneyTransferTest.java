@@ -1,6 +1,4 @@
 package ru.netology.ibank.test;
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selenide;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.netology.ibank.data.DataHelper;
@@ -8,9 +6,7 @@ import ru.netology.ibank.page.DashboardPage;
 import ru.netology.ibank.page.LoginPage;
 import ru.netology.ibank.page.TransferPage;
 
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.time.Duration;
+
 
 import static com.codeborne.selenide.Selenide.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
