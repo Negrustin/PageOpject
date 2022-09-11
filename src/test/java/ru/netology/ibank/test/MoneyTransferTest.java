@@ -1,20 +1,17 @@
 package ru.netology.ibank.test;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.netology.ibank.data.DataHelper;
 import ru.netology.ibank.page.DashboardPage;
 import ru.netology.ibank.page.LoginPage;
-import ru.netology.ibank.page.TransferPage;
 
+import static com.codeborne.selenide.Selenide.open;
+import static ru.netology.ibank.data.DataHelper.*;
+import static ru.netology.ibank.data.DataHelper.generateInvalidAmount;
 
-
-import static com.codeborne.selenide.Selenide.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-
-class MoneyTransferTest {
-
-    int amount = 200;
+public class MoneyTransferTest {
 
 
     @BeforeEach
@@ -25,110 +22,86 @@ class MoneyTransferTest {
         var verificationPage = loginPage.validLogin(authInfo);
         var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
         verificationPage.validVerify(verificationCode);
+    }
+
+
+    @Test
+    void transferFromFirstCardToSecondCard() {
+        DashboardPage dashboardPage = new DashboardPage();
+        var firstCardInfo = getFirstCardInfo();
+        var secondCardInfo = getSecondCardInfo();
+        var firstCardBalance = dashboardPage.getCardBalance(firstCardInfo);
+        var secondCardBalance = dashboardPage.getCardBalance(secondCardInfo);
+
+        var transferPage = dashboardPage.selectCardToTransfer(firstCardInfo);
+
+        var amount = generateValidAmount(secondCardBalance);
+
+        transferPage.makeValidTransfer(amount, secondCardInfo);
+
+        var actualBalanceFirstCard = dashboardPage.getCardBalance(firstCardInfo);
+        var actualBalanceSecondCard = dashboardPage.getCardBalance(secondCardInfo);
+
+        Assertions.assertEquals(firstCardBalance + amount, actualBalanceFirstCard);
+        Assertions.assertEquals(secondCardBalance - amount, actualBalanceSecondCard);
+    }
+
+    @Test
+    void transferFromSecondCardToFirstCard() {
+        DashboardPage dashboardPage = new DashboardPage();
+        var firstCardInfo = getFirstCardInfo();
+        var secondCardInfo = getSecondCardInfo();
+        var firstCardBalance = dashboardPage.getCardBalance(firstCardInfo);
+        var secondCardBalance = dashboardPage.getCardBalance(secondCardInfo);
+
+        var amount = generateValidAmount(firstCardBalance);
+
+        var transferPage = dashboardPage.selectCardToTransfer(secondCardInfo);
+        transferPage.makeValidTransfer(amount, firstCardInfo);
+
+        var actualBalanceFirstCard = dashboardPage.getCardBalance(firstCardInfo);
+        var actualBalanceSecondCard = dashboardPage.getCardBalance(secondCardInfo);
+
+        Assertions.assertEquals(firstCardBalance - amount, actualBalanceFirstCard);
+        Assertions.assertEquals(secondCardBalance + amount, actualBalanceSecondCard);
+    }
+
+    @Test
+    void shouldErrorMassageIfCardNumberInvalid(){
+        DashboardPage dashboardPage = new DashboardPage();
+        var firstCardInfo = getFirstCardInfo();
+        var secondCardInfo = getSecondCardInfo();
+        var invalidCardInfo = getInvalidCardInfo();
+        var firstCardBalance = dashboardPage.getCardBalance(firstCardInfo);
+        var secondCardBalance = dashboardPage.getCardBalance(secondCardInfo);
+
+        var amount = generateValidAmount(secondCardBalance);
+        var transferPage = dashboardPage.selectCardToTransfer(secondCardInfo);
+        transferPage.makeInvalidCardNumberTransfer(amount, invalidCardInfo);
+
+        transferPage.getErrorWindow("Номер карты указан неверно");
 
     }
 
     @Test
-    void shouldTransferMoneyFromSecondCardToFirstCard() {
+    void shouldErrorMassageIfAmountMoreBalance() {
         DashboardPage dashboardPage = new DashboardPage();
-        TransferPage transferPage = new TransferPage();
-        int firstCardStart_balance = dashboardPage.getCardBalance(dashboardPage.getFirstMyCardId());
-        int secondCardStart_balance = dashboardPage.getCardBalance(dashboardPage.getSecondMyCardId());
+        var firstCardInfo = getFirstCardInfo();
+        var secondCardInfo = getSecondCardInfo();
+        var firstCardBalance = dashboardPage.getCardBalance(firstCardInfo);
+        var secondCardBalance = dashboardPage.getCardBalance(secondCardInfo);
 
-        dashboardPage.topUpCard_001();
+        var amount = generateInvalidAmount(secondCardBalance);
+        var transferPage = dashboardPage.selectCardToTransfer(secondCardInfo);
+        transferPage.makeValidTransfer(amount,firstCardInfo);
+        transferPage.getErrorWindow("Недостатосно средств для выполнения операции");
 
-        transferPage.topUpYourCardByAmount(DataHelper.getAccountNumber_002(), amount);
+        var actualBalanceFirstCard = dashboardPage.getCardBalance(firstCardInfo);
+        var actualBalanceSecondCard = dashboardPage.getCardBalance(secondCardInfo);
 
-        int expected = firstCardStart_balance + amount;
-        int expected2 = secondCardStart_balance - amount;
 
-        int firstCardCurrent_balance = dashboardPage.getCardBalance(dashboardPage.getFirstMyCardId());
-        int secondCardCurrent_balance = dashboardPage.getCardBalance(dashboardPage.getSecondMyCardId());
-
-        int actual = firstCardCurrent_balance;
-        int actual2 = secondCardCurrent_balance;
-
-//        assertTrue(dashboardPage
-//                .verifyTransferFromSecondCardToFirstCard(
-//                firstCardStart_balance,
-//                secondCardStart_balance,
-//                firstCardCurrent_balance,
-//                secondCardCurrent_balance,
-//                amount))
-        assertEquals(expected, actual);
-        assertEquals(expected2, actual2);
+        Assertions.assertEquals(firstCardBalance,actualBalanceFirstCard);
+        Assertions.assertEquals(secondCardBalance,actualBalanceSecondCard);
     }
-
-
-
-    @Test
-    void shouldTransferMoneyFromFirstCardToSecondCard() {
-        DashboardPage dashboardPage = new DashboardPage();
-        TransferPage transferPage = new TransferPage();
-        int firstCardStart_balance = dashboardPage.getCardBalance(dashboardPage.getFirstMyCardId());
-        int secondCardStart_balance = dashboardPage.getCardBalance(dashboardPage.getSecondMyCardId());
-
-        dashboardPage.topUpCard_002();
-
-        transferPage.topUpYourCardByAmount(DataHelper.getAccountNumber_001(),amount);
-
-        int expected = secondCardStart_balance + amount;
-        int expected2 = firstCardStart_balance - amount;
-
-        int firstCardCurrent_balance = dashboardPage.getCardBalance(dashboardPage.getFirstMyCardId());
-        int secondCardCurrent_balance = dashboardPage.getCardBalance(dashboardPage.getSecondMyCardId());
-
-        int actual = secondCardCurrent_balance;
-        int actual2 = firstCardCurrent_balance;
-
-        assertEquals(expected, actual);
-        assertEquals(expected2, actual2);
-
-    }
-
-    @Test
-    public void transferringMoreThanTheAmountInTheAccount() {
-        DashboardPage dashboardPage = new DashboardPage();
-        TransferPage transferPage = new TransferPage();
-        int firstCardStart_balance = dashboardPage.getCardBalance(dashboardPage.getFirstMyCardId());
-        int secondCardStart_balance = dashboardPage.getCardBalance(dashboardPage.getSecondMyCardId());
-
-        int expected1 = firstCardStart_balance;
-        int expected2 = secondCardStart_balance;
-
-        dashboardPage.topUpCard_001();
-
-        transferPage.topUpYourCardByAmount(DataHelper.getAccountNumber_002(), firstCardStart_balance + amount);
-
-        int firstCardCurrent_balance = dashboardPage.getCardBalance(dashboardPage.getFirstMyCardId());
-        int secondCardCurrent_balance = dashboardPage.getCardBalance(dashboardPage.getSecondMyCardId());
-
-        int actual1 = firstCardCurrent_balance;
-        int actual2 = secondCardCurrent_balance;
-
-        assertEquals(expected1, actual1);
-        assertEquals(expected2, actual2);
-
-        dashboardPage.getErrorMassage("Недомтаточно средств");
-
-    }
-
-    @Test
-    void shouldTransferMoneyFromNon_ExistendAccountNumber() {
-        DashboardPage dashboardPage = new DashboardPage();
-        TransferPage transferPage = new TransferPage();
-
-
-        dashboardPage.topUpCard_001();
-
-        transferPage.topUpYourCardByAmount(DataHelper.getNon_ExistentdAccountNumber(), amount);
-
-        dashboardPage.getErrorMassage("Номер счёта введен неверно");
-
-    }
-
-
-
 
 }
-
